@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#4338ca">
+    <title>You're offline · Restaurant OS</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; background: #f6f6f3; color: #181816; }
+      body { display: grid; min-height: 100dvh; margin: 0; place-items: center; }
+      main { max-width: 28rem; padding: 2rem; text-align: center; }
+      h1 { font-size: 1.5rem; }
+      p { line-height: 1.6; color: #5a5a53; }
+      a { display: inline-block; margin-top: 1rem; border-radius: .5rem; padding: .7rem 1rem; background: #4338ca; color: white; text-decoration: none; }
+      @media (prefers-color-scheme: dark) { :root { background: #0d0d0c; color: #f3f3ef; } p { color: #a8a89f; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>You're offline</h1>
+      <p>Restaurant OS needs a connection to load your workspace. Check your internet connection and try again.</p>
+      <a href="/">Try again</a>
+    </main>
+  </body>
+</html>

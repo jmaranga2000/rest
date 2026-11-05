@@ -1,9 +1,14 @@
 {
+  "id": "/",
   "name": "Restaurant OS",
   "short_name": "Restaurant OS",
+  "description": "Point of sale, kitchen display, inventory and reporting for restaurants.",
   "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#f6f6f3",
   "theme_color": "#4338ca",
+  "categories": ["business", "food"],
   "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
