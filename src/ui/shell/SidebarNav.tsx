@@ -1,11 +1,39 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LuLock, LuArrowUpRight } from "react-icons/lu";
+import {
+  LuArmchair, LuArrowUpRight, LuBedDouble, LuChartColumn, LuChefHat, LuCreditCard, LuGift, LuLayoutDashboard, LuLock,
+  LuPackage, LuReceipt, LuScrollText, LuSettings, LuShieldCheck, LuShoppingBag, LuStore, LuTablet, LuTruck, LuTv,
+  LuUserCog, LuUsers, LuUtensilsCrossed, LuWallet, type IconType,
+} from "react-icons/lu";
 import { cn } from "../cn";
-import type { NavGroup, NavItem } from "./nav";
+import type { NavGroup, NavIconName, NavItem } from "./nav";
 
 type Group = Omit<NavGroup, "items"> & { items: (NavItem & { locked: boolean })[] };
+
+const ICONS: Record<NavIconName, IconType> = {
+  armchair: LuArmchair,
+  chart: LuChartColumn,
+  chef: LuChefHat,
+  "credit-card": LuCreditCard,
+  gift: LuGift,
+  dashboard: LuLayoutDashboard,
+  package: LuPackage,
+  receipt: LuReceipt,
+  scroll: LuScrollText,
+  settings: LuSettings,
+  shield: LuShieldCheck,
+  store: LuStore,
+  tablet: LuTablet,
+  truck: LuTruck,
+  tv: LuTv,
+  "user-cog": LuUserCog,
+  users: LuUsers,
+  utensils: LuUtensilsCrossed,
+  wallet: LuWallet,
+  "shopping-bag": LuShoppingBag,
+  bed: LuBedDouble,
+};
 
 export function SidebarNav({ groups, onNavigate }: { groups: Group[]; onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -18,7 +46,7 @@ export function SidebarNav({ groups, onNavigate }: { groups: Group[]; onNavigate
           <ul className="space-y-0.5">
             {g.items.map((item) => {
               const active = isActive(item.href);
-              const Icon = item.icon;
+              const Icon = ICONS[item.icon];
               const href = item.locked ? `/app/upgrade?feature=${item.feature}` : item.href;
               return (
                 <li key={item.href}>
