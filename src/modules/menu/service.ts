@@ -8,6 +8,7 @@ import { emit } from "@/platform/events/outbox";
 import type { ProductInput } from "./schema";
 import type { z } from "zod";
 import type { categorySchema, modifierGroupSchema, stationSchema } from "./schema";
+export { effectivePrice } from "./pricing";
 
 export interface Category { id: string; name: string; color: string; sortOrder: number; isActive: boolean; productCount: number }
 export interface Station { id: string; name: string; sortOrder: number }
@@ -22,9 +23,6 @@ export interface CatalogProduct {
   branchPriceMinor: number | null; isAvailable: boolean;
 }
 export interface Catalog { categories: Category[]; stations: Station[]; modifierGroups: ModifierGroup[]; products: CatalogProduct[] }
-
-/** Price a customer pays for the product at this branch (before variants). */
-export const effectivePrice = (p: Pick<CatalogProduct, "basePriceMinor" | "branchPriceMinor">): number => p.branchPriceMinor ?? p.basePriceMinor;
 
 export async function getCatalog(ctx: Ctx, opts: { branchId?: string | null; includeInactive?: boolean } = {}): Promise<Catalog> {
   const db = ctx.db;

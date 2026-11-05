@@ -12,7 +12,7 @@ import { useRunAction } from "@/ui/ActionForm";
 import { ThemeToggle } from "@/ui/ThemeToggle";
 import { formatMoney } from "@/platform/money";
 import type { Catalog, CatalogProduct } from "@/modules/menu/service";
-import { effectivePrice } from "@/modules/menu/service";
+import { effectivePrice } from "@/modules/menu/pricing";
 import { addItemsAction, openOrderAction, removeItemAction, sendToKitchenAction, updateItemAction } from "../actions";
 import { ITEM_STATUS_LABEL, type OrderView } from "../types";
 import type { TableState } from "../service";

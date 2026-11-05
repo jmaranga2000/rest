@@ -1,4 +1,3 @@
-import { *asadmin } from '@/modules/admin/service';
 /**
  * Form honeypot + timing trap. Real browsers never fill the hidden `_hp` field and take more than a second to type
  * credentials; scripted form-fillers fail one or both. Neither check is visible to people, and neither reveals itself in errors.
