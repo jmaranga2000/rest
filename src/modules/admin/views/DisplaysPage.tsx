@@ -14,7 +14,7 @@ function SlideDialog({ slide, branches, trigger }: { slide?: SlideRow; branches:
     {slide ? <input type="hidden" name="id" value={slide.id} /> : null}
     <Field label="Headline" name="title" required><Input id="title" name="title" defaultValue={slide?.title} required autoFocus /></Field>
     <Field label="Text" name="body"><Input id="body" name="body" defaultValue={slide?.body} /></Field>
-    <Field label="Slide image" name="imageUrl"><SlideImageField initialUrl={slide?.imageUrl ?? ""} /></Field>
+    <Field label="Slide image" name="slideImageFile"><SlideImageField initialUrl={slide?.imageUrl ?? ""} /></Field>
     <div className="grid grid-cols-3 gap-4"><Field label="Colour" name="accent"><Input id="accent" name="accent" type="color" defaultValue={slide?.accent ?? "#4338ca"} className="h-10 p-1" /></Field>
       <Field label="Seconds" name="durationS"><Input id="durationS" name="durationS" type="number" min={3} max={120} defaultValue={slide?.durationS ?? 8} /></Field>
       <Field label="Branch" name="branchId"><Select id="branchId" name="branchId" defaultValue={slide?.branchId ?? ""}><option value="">All</option>{branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></Field></div>

@@ -38,6 +38,7 @@ export function SlideImageField({ initialUrl }: { initialUrl: string }) {
       <label className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-line px-3 py-2 text-sm font-medium hover:bg-surface-2">
         {uploading ? "Uploading…" : imageUrl ? "Replace image" : "Upload image"}
         <input
+          id="slideImageFile"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="sr-only"
