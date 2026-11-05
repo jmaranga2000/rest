@@ -56,6 +56,19 @@ test("void rules, discount audit and refunds", async () => {
   await assert.rejects(() => orders.refundPayment(ctx, paid.payments[0]!.id, { amountMinor: 1, reason: "again" }), /can still be refunded/);
 });
 
+test("held item quantity can be increased and reprices the order", async () => {
+  const { t, ctx, burger } = await setup();
+  const order = await orders.openOrder(ctx, { branchId: t.branchId, type: "takeaway" });
+  const added = await orders.addItems(ctx, order.id, [{ productId: burger.id, qty: 1 }]);
+
+  const updated = await orders.updateItem(ctx, added.items[0]!.id, { qty: 2 });
+
+  assert.equal(updated.items[0]!.qty, 2);
+  assert.equal(updated.items[0]!.lineTotalMinor, 200000);
+  assert.equal(updated.subtotalMinor, 200000);
+  assert.equal(updated.totalMinor, 232000);
+});
+
 test("table is exclusive and shift variance is computed", async () => {
   const { t, ctx, burger } = await setup();
   const tbl = newId("table");

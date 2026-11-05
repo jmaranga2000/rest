@@ -38,6 +38,7 @@ export function PosTerminal(p: PosProps) {
   const [optimisticOrder, setOptimisticOrder] = useState<OrderView | null>(null);
   const [pendingAdd, setPendingAdd] = useState<{ id: string; name: string; variantName: string | null; qty: number; lineTotalMinor: number } | null>(null);
   const [pendingDineInItems, setPendingDineInItems] = useState<{ productId: string; variantId: string | null; optionIds: string[]; qty: number; note: string | null }[] | null>(null);
+  const [itemMutation, setItemMutation] = useState<{ itemId: string; kind: "remove" } | { itemId: string; kind: "qty"; qty: number } | null>(null);
   useEffect(() => { try { setCompact(localStorage.getItem("pos.compact") === "1"); } catch { /* storage unavailable */ } }, []);
   const toggleCompact = () => setCompact((c) => { const n = !c; try { localStorage.setItem("pos.compact", n ? "1" : "0"); } catch { /* ignore */ } return n; });
   const order = (optimisticOrder?.id === p.activeOrderId ? optimisticOrder : null) ?? p.orders.find((o) => o.id === p.activeOrderId) ?? null;
@@ -46,9 +47,30 @@ export function PosTerminal(p: PosProps) {
   const products = useMemo(() => p.catalog.products.filter((x) => (cat === "all" || x.categoryId === cat) && (!q || x.name.toLowerCase().includes(q.toLowerCase()))), [p.catalog.products, cat, q]);
   const held = order?.items.filter((i) => i.status === "held").length ?? 0;
   const live = order?.items.filter((i) => i.status !== "void") ?? [];
+  const displayedLive = itemMutation?.kind === "remove"
+    ? live.filter((item) => item.id !== itemMutation.itemId)
+    : itemMutation?.kind === "qty"
+      ? live.map((item) => item.id === itemMutation.itemId
+        ? { ...item, qty: itemMutation.qty, lineTotalMinor: (item.unitPriceMinor + item.modifiersMinor) * itemMutation.qty }
+        : item)
+      : live;
   const due = order ? order.totalMinor - order.paidMinor : 0;
 
   const go = (id: string | null) => { router.push(id ? `/pos?order=${id}` : "/pos"); router.refresh(); };
+  const changeItemQty = (itemId: string, qty: number) => {
+    setItemMutation({ itemId, kind: "qty", qty });
+    run(updateItemAction, { itemId, qty }, {
+      onDone: (updated) => { setOptimisticOrder(updated as OrderView); setItemMutation(null); },
+      onError: () => setItemMutation(null),
+    });
+  };
+  const removeItem = (itemId: string) => {
+    setItemMutation({ itemId, kind: "remove" });
+    run(removeItemAction, { itemId }, {
+      onDone: (updated) => { setOptimisticOrder(updated as OrderView); setItemMutation(null); },
+      onError: () => setItemMutation(null),
+    });
+  };
 
   function addProduct(prod: CatalogProduct, sel?: { variantId?: string | null; optionIds?: string[]; qty?: number; note?: string }) {
     if (!p.can.create) return;
@@ -215,7 +237,7 @@ export function PosTerminal(p: PosProps) {
                     </div>
                   </li>
                 ) : null}
-                {live.map((i) => (
+                {displayedLive.map((i) => (
                   <li key={i.id} className="px-4 py-3">
                     <div className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">
@@ -227,18 +249,19 @@ export function PosTerminal(p: PosProps) {
                       <div className="text-right"><div className="num text-sm font-medium">{fmt(i.lineTotalMinor)}</div>
                         {i.status === "held" ? (
                           <div className="mt-1 inline-flex items-center rounded-lg border border-line">
-                            <button aria-label="Decrease" className="p-1.5 hover:bg-surface-2" onClick={() => (i.qty > 1 ? run(updateItemAction, { itemId: i.id, qty: i.qty - 1 }) : run(removeItemAction, { itemId: i.id }))}>{i.qty > 1 ? <LuMinus className="size-3.5" /> : <LuTrash2 className="size-3.5 text-danger" />}</button>
+                            <button type="button" aria-label="Decrease" disabled={pending} className="p-1.5 hover:bg-surface-2 disabled:opacity-50" onClick={() => (i.qty > 1 ? changeItemQty(i.id, i.qty - 1) : removeItem(i.id))}>{i.qty > 1 ? <LuMinus className="size-3.5" /> : <LuTrash2 className="size-3.5 text-danger" />}</button>
                             <span className="num w-6 text-center text-sm">{i.qty}</span>
-                            <button aria-label="Increase" className="p-1.5 hover:bg-surface-2" onClick={() => run(updateItemAction, { itemId: i.id, qty: i.qty + 1 })}><LuPlus className="size-3.5" /></button>
+                            <button type="button" aria-label="Increase" disabled={pending || i.qty >= 999} className="p-1.5 hover:bg-surface-2 disabled:opacity-50" onClick={() => changeItemQty(i.id, i.qty + 1)}><LuPlus className="size-3.5" /></button>
                           </div>
                         ) : <div className="mt-1 text-xs text-muted">× {i.qty}</div>}
                       </div>
                     </div>
                   </li>
                 ))}
-                {!live.length ? <li className="p-8 text-center text-sm text-muted">Tap items to add them.</li> : null}
+                {!displayedLive.length ? <li className="p-8 text-center text-sm text-muted">{itemMutation?.kind === "remove" ? "Removing item…" : "Tap items to add them."}</li> : null}
               </ul>
               <div className="space-y-1.5 border-t border-line px-4 py-3 text-sm">
+                {itemMutation ? <p className="text-xs text-muted" role="status">Updating order…</p> : null}
                 <Row l="Subtotal" v={fmt(order.subtotalMinor)} />
                 {order.discountMinor ? <Row l="Discount" v={`− ${fmt(order.discountMinor)}`} tone="success" /> : null}
                 {order.serviceChargeMinor ? <Row l="Service charge" v={fmt(order.serviceChargeMinor)} /> : null}
