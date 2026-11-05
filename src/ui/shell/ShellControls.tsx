@@ -1,6 +1,6 @@
 "use client";
-import { useState, useTransition, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { LuChevronDown, LuLogOut, LuMenu, LuStore, LuX } from "react-icons/lu";
 import { Avatar } from "../misc";
 import { ThemeToggle } from "../ThemeToggle";
@@ -8,18 +8,43 @@ import { cn } from "../cn";
 
 export function MobileDrawer({ children, brand }: { children: ReactNode; brand: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  useEffect(() => setOpen(false), [pathname]);
+
   return (
     <>
       <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-surface/95 px-4 backdrop-blur lg:hidden">
         {brand}
-        <button type="button" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)} className="-mr-2 rounded-md p-2 text-fg hover:bg-surface-2"><LuMenu className="size-5" /></button>
+        <button type="button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="mobile-navigation" aria-expanded={open} onClick={() => setOpen((value) => !value)} className="-mr-2 rounded-lg p-2 text-fg hover:bg-surface-2 focus-visible:outline">
+          {open ? <LuX className="size-5" aria-hidden /> : <LuMenu className="size-5" aria-hidden />}
+        </button>
       </div>
       {open ? (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <div className="absolute inset-0 bg-[var(--overlay)]" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85%] animate-in flex-col bg-surface shadow-modal" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) setOpen(false); }}>
-            <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="absolute right-2 top-3 rounded-md p-2 text-muted hover:bg-surface-2"><LuX className="size-5" /></button>
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button type="button" aria-label="Close navigation" onClick={() => setOpen(false)} className="absolute inset-0 size-full cursor-default bg-[var(--overlay)]" />
+          <div id="mobile-navigation" className="absolute inset-y-0 left-0 flex w-80 max-w-[88%] animate-in flex-col border-r border-line bg-surface shadow-modal" role="dialog" aria-modal="true" aria-label="Main navigation">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-4">
+              {brand}
+              <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="rounded-lg p-2 text-muted hover:bg-surface-2 hover:text-fg"><LuX className="size-5" aria-hidden /></button>
+            </div>
+            <div className="min-h-0 flex-1" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) setOpen(false); }}>
             {children}
+            </div>
           </div>
         </div>
       ) : null}
