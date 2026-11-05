@@ -81,6 +81,47 @@ export function PosTerminal(p: PosProps) {
       onError: clearPending,
     });
   }
+
+  function chooseTable(tableId: string) {
+    const table = p.tables.find((candidate) => candidate.id === tableId);
+    if (!table) return;
+    if (table.orderId) {
+      if (!pendingDineInItems) go(table.orderId);
+      return;
+    }
+    run(openOrderAction, { branchId: p.branchId, type: "dine_in", tableId, clientKey: crypto.randomUUID() }, {
+      refresh: false,
+      onDone: (opened) => {
+        const createdOrder = opened as OrderView;
+        setOptimisticOrder(createdOrder);
+        router.push(`/pos?order=${createdOrder.id}`);
+        if (!pendingDineInItems) return router.refresh();
+        run(addItemsAction, { orderId: createdOrder.id, items: pendingDineInItems }, {
+          onDone: (updated) => {
+            setOptimisticOrder(updated as OrderView);
+            setPendingDineInItems(null);
+            setPendingAdd(null);
+            router.refresh();
+          },
+          onError: () => { setPendingDineInItems(null); setPendingAdd(null); },
+        });
+      },
+    });
+  }
+
+  const tablePicker = (
+    <div>
+      <div className="mb-2 text-xs font-medium uppercase tracking-wide text-subtle">Pick a table</div>
+      {pendingDineInItems ? <p className="mb-2 rounded-lg bg-primary-soft px-3 py-2 text-sm text-primary">Choose a table to add {pendingDineInItems.length} selected item{pendingDineInItems.length === 1 ? "" : "s"} to the order.</p> : null}
+      <div className="grid grid-cols-3 gap-2">{p.tables.map((t) => (
+        <button key={t.id} disabled={pending || (!!pendingDineInItems && !!t.orderId)} onClick={() => chooseTable(t.id)}
+          className={cn("rounded-lg border p-2 text-center text-sm disabled:cursor-not-allowed disabled:opacity-50", t.orderId ? "border-warning bg-warning-soft" : "border-line hover:border-primary")}>
+          <div className="font-semibold">{t.label}</div><div className="text-xs text-muted">{t.orderId ? fmt(t.totalMinor) : `${t.seats} seats`}</div>
+        </button>
+      ))}</div>
+      {!p.tables.length ? <p className="text-sm text-muted">No tables are set up for this branch.</p> : null}
+    </div>
+  );
   const needsConfig = (x: CatalogProduct) => x.variants.length > 1 || x.modifierGroupIds.length > 0;
 
   return (
@@ -140,47 +181,20 @@ export function PosTerminal(p: PosProps) {
         {/* ticket */}
         <aside className={cn("min-h-0 w-full shrink-0 flex-col border-l border-line bg-surface lg:flex lg:w-[26rem]", view === "ticket" ? "flex" : "hidden")}>
           {!order ? (
-            pendingAdd ? (
-              <div className="space-y-3 p-4" aria-live="polite">
-                <h2 className="font-semibold">Starting order…</h2>
+            <div className="space-y-4 overflow-y-auto p-4">
+              <h2 className="font-semibold">{pendingDineInItems ? "Select a table" : pendingAdd ? "Starting order…" : "New order"}</h2>
+              {pendingAdd ? (
                 <div className="flex items-start justify-between gap-3 rounded-lg border border-primary bg-primary-soft p-3">
                   <div className="min-w-0"><div className="font-medium">{pendingAdd.name}{pendingAdd.variantName ? ` · ${pendingAdd.variantName}` : ""}</div><div className="text-xs text-muted">× {pendingAdd.qty} · Adding to order</div></div>
                   <span className="num shrink-0 text-sm font-medium">{fmt(pendingAdd.lineTotalMinor)}</span>
                 </div>
-              </div>
-            ) : <div className="space-y-4 p-4">
-              <h2 className="font-semibold">New order</h2>
-              <div className="flex flex-wrap gap-2">{p.orderTypes.map((t) => <button key={t} onClick={() => setNewType(t)} className={cn("rounded-lg border px-3 py-2 text-sm font-medium", newType === t ? "border-primary bg-primary-soft text-primary" : "border-line text-muted")}>{TYPE_LABEL[t] ?? t}</button>)}</div>
-              {newType === "dine_in" ? (
-                <div><div className="mb-2 text-xs font-medium uppercase tracking-wide text-subtle">Pick a table</div>
-                  {pendingDineInItems ? <p className="mb-2 rounded-lg bg-primary-soft px-3 py-2 text-sm text-primary">Choose a table to add {pendingDineInItems.length} selected item{pendingDineInItems.length === 1 ? "" : "s"} to the order.</p> : null}
-                  <div className="grid grid-cols-3 gap-2">{p.tables.map((t) => (
-                    <button key={t.id} disabled={pending || (!!pendingDineInItems && !!t.orderId)} onClick={() => {
-                      if (t.orderId) return go(t.orderId);
-                      run(openOrderAction, { branchId: p.branchId, type: "dine_in", tableId: t.id, clientKey: crypto.randomUUID() }, {
-                        refresh: false,
-                        onDone: (opened) => {
-                          const createdOrder = opened as OrderView;
-                          setOptimisticOrder(createdOrder);
-                          router.push(`/pos?order=${createdOrder.id}`);
-                          if (!pendingDineInItems) return router.refresh();
-                          run(addItemsAction, { orderId: createdOrder.id, items: pendingDineInItems }, {
-                            onDone: (updated) => {
-                              setOptimisticOrder(updated as OrderView);
-                              setPendingDineInItems(null);
-                              setPendingAdd(null);
-                              router.refresh();
-                            },
-                            onError: () => { setPendingDineInItems(null); setPendingAdd(null); },
-                          });
-                        },
-                      });
-                    }}
-                      className={cn("rounded-lg border p-2 text-center text-sm disabled:cursor-not-allowed disabled:opacity-50", t.orderId ? "border-warning bg-warning-soft" : "border-line hover:border-primary")}>
-                      <div className="font-semibold">{t.label}</div><div className="text-xs text-muted">{t.orderId ? fmt(t.totalMinor) : `${t.seats} seats`}</div></button>))}</div>
-                  {!p.tables.length ? <p className="text-sm text-muted">No tables are set up for this branch.</p> : null}
-                </div>
-              ) : <p className="text-sm text-muted">Tap an item to start a {TYPE_LABEL[newType]?.toLowerCase()} order.</p>}
+              ) : null}
+              {!pendingDineInItems ? (
+                <>
+                  <div className="flex flex-wrap gap-2">{p.orderTypes.map((t) => <button key={t} onClick={() => setNewType(t)} className={cn("rounded-lg border px-3 py-2 text-sm font-medium", newType === t ? "border-primary bg-primary-soft text-primary" : "border-line text-muted")}>{TYPE_LABEL[t] ?? t}</button>)}</div>
+                  {newType === "dine_in" ? tablePicker : <p className="text-sm text-muted">Tap an item to start a {TYPE_LABEL[newType]?.toLowerCase()} order.</p>}
+                </>
+              ) : tablePicker}
             </div>
           ) : (
             <>
