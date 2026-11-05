@@ -37,8 +37,8 @@ function TwoFactor({ enabled, recoveryLeft }: { enabled: boolean; recoveryLeft: 
             <p>In your authenticator app (Google Authenticator, Authy, 1Password…) choose <strong>Enter a setup key</strong> and type this key, account <em>Restaurant OS</em>, time-based:</p>
             <code className="num block break-all rounded-lg bg-surface-2 p-3 text-base tracking-widest">{setup.secret.match(/.{1,4}/g)?.join(" ")}</code>
             <p className="break-all text-xs text-muted">Or open on your phone: {setup.uri}</p>
-            <ActionForm<{ recoveryCodes: string[] }> action={confirmTwoFactorAction} onSuccess={(d) => { setSetup(null); setCodes(d.recoveryCodes); }}><div className="flex items-end gap-3">
-              <Field label="6-digit code" name="code"><Input id="c-code" name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={10} required /></Field><SubmitButton>Confirm and turn on</SubmitButton></div></ActionForm></div>)
+            <ActionForm<{ recoveryCodes: string[] }> action={confirmTwoFactorAction} onSuccess={(d) => { setSetup(null); setCodes(d.recoveryCodes); }}><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <Field label="6-digit code" name="code"><Input id="c-code" name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={10} required /></Field><SubmitButton className="w-full sm:w-auto">Confirm and turn on</SubmitButton></div></ActionForm></div>)
           : (<div className="space-y-3"><p className="text-muted">Strongly recommended for every operator. Without it, a stolen password is enough to reach every restaurant.</p>
             <Button loading={pending} onClick={() => run(beginTwoFactorAction, {}, { refresh: false, onDone: (d) => setSetup(d) })}>Set up two-factor</Button></div>)}
       </CardBody></Card>);
@@ -48,16 +48,40 @@ export function SecurityPage({ events, bans, twoFactor, allowList }: { events: S
   const active = bans.filter((b) => b.active);
   return (<>
     <PageHeader title="Security" description="Sign-in protection, bans and what the honeypots caught." />
-    <div className="grid gap-6">
-      <TwoFactor enabled={twoFactor.enabled} recoveryLeft={twoFactor.recoveryLeft} />
-      {!allowList ? <Alert tone="info" title="Restrict this console to your office or VPN">Set <code>PLATFORM_ALLOWED_IPS</code> (comma-separated IPs or CIDRs) and everyone else gets a plain 404 here.</Alert> : null}
-      <Card><CardHeader title="Banned IPs" description="Blocks sign-in, registration and invites from that address." actions={
-        <ActionForm action={banIpAction} successMessage="IP banned" resetOnSuccess className="flex items-end gap-2"><Input name="ip" placeholder="203.0.113.7" aria-label="IP address" required className="w-40" /><Input name="hours" type="number" min={1} defaultValue={24} aria-label="Hours" className="w-20" /><SubmitButton variant="outline">Ban</SubmitButton></ActionForm>} />
-        {!active.length ? <CardBody><p className="text-sm text-muted">No active bans.</p></CardBody> : <Table><THead><TR><TH>IP</TH><TH>Reason</TH><TH>Until</TH><TH /></TR></THead><TBody>{active.map((b) => (
-          <TR key={b.id}><TD className="num font-medium">{b.id}</TD><TD>{b.reason}<div className="text-xs text-muted">{b.source}</div></TD><TD className="whitespace-nowrap text-muted">{formatDateTime(b.until, TZ)}</TD>
-            <TD align="right"><ConfirmButton action={unbanIpAction} input={{ ip: b.id }} title={`Lift ban on ${b.id}?`} variant="outline" confirmLabel="Lift ban">Lift</ConfirmButton></TD></TR>))}</TBody></Table>}</Card>
-      <Card><CardHeader title="Recent security events" />
-        {!events.length ? <EmptyState title="Nothing suspicious yet" /> : <div className="overflow-x-auto"><Table><THead><TR><TH>When</TH><TH>Event</TH><TH>IP</TH><TH>Detail</TH></TR></THead><TBody>{events.map((e) => (
-          <TR key={e.id}><TD className="whitespace-nowrap text-muted">{formatDateTime(e.createdAt, TZ)}</TD><TD><Badge tone={SERIOUS.has(e.type) ? "danger" : "neutral"}>{LABEL[e.type] ?? e.type}</Badge></TD><TD className="num">{e.ip ?? "—"}</TD><TD className="max-w-xs truncate text-muted" title={[e.path, e.detail, e.userAgent].filter(Boolean).join(" · ")}>{[e.path, e.detail].filter(Boolean).join(" · ")}</TD></TR>))}</TBody></Table></div>}</Card>
+    <div className="space-y-6">
+      <section className="grid items-start gap-6 xl:grid-cols-2" aria-label="Security settings">
+        <TwoFactor enabled={twoFactor.enabled} recoveryLeft={twoFactor.recoveryLeft} />
+        {allowList
+          ? <Alert tone="success" title="Operator console IP allow-list is configured">Only the configured IP addresses and CIDR ranges can access this console.</Alert>
+          : <Alert tone="info" title="Restrict this console to your office or VPN">Set <code>PLATFORM_ALLOWED_IPS</code> (comma-separated IPs or CIDRs) and everyone else gets a plain 404 here.</Alert>}
+      </section>
+
+      <Card>
+        <CardHeader title="Banned IPs" description="Blocks sign-in, registration and invites from that address." />
+        <CardBody className="space-y-4">
+          <ActionForm action={banIpAction} successMessage="IP banned" resetOnSuccess className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_auto] sm:items-end">
+            <Field label="IP address" name="ip" required><Input id="ban-ip" name="ip" placeholder="203.0.113.7" required /></Field>
+            <Field label="Duration (hours)" name="hours" required><Input id="ban-hours" name="hours" type="number" min={1} defaultValue={24} required /></Field>
+            <SubmitButton variant="outline" className="w-full sm:w-auto">Ban IP</SubmitButton>
+          </ActionForm>
+          {!active.length ? <p className="border-t border-line pt-4 text-sm text-muted">No active IP bans.</p> : (
+            <div className="overflow-x-auto border-t border-line pt-2">
+              <Table><THead><TR><TH>IP</TH><TH>Reason</TH><TH>Until</TH><TH /></TR></THead><TBody>{active.map((b) => (
+                <TR key={b.id}><TD className="num whitespace-nowrap font-medium">{b.id}</TD><TD className="min-w-40">{b.reason}<div className="text-xs text-muted">{b.source}</div></TD><TD className="whitespace-nowrap text-muted">{formatDateTime(b.until, TZ)}</TD>
+                  <TD align="right"><ConfirmButton action={unbanIpAction} input={{ ip: b.id }} title={`Lift ban on ${b.id}?`} variant="outline" confirmLabel="Lift ban">Lift</ConfirmButton></TD></TR>))}</TBody></Table>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader title="Recent security events" description="Latest suspicious activity and sign-in protection events." />
+        {!events.length ? <CardBody><EmptyState title="Nothing suspicious yet" /></CardBody> : (
+          <div className="overflow-x-auto">
+            <Table><THead><TR><TH>When</TH><TH>Event</TH><TH>IP</TH><TH>Detail</TH></TR></THead><TBody>{events.map((e) => (
+              <TR key={e.id}><TD className="whitespace-nowrap text-muted">{formatDateTime(e.createdAt, TZ)}</TD><TD><Badge tone={SERIOUS.has(e.type) ? "danger" : "neutral"}>{LABEL[e.type] ?? e.type}</Badge></TD><TD className="num whitespace-nowrap">{e.ip ?? "—"}</TD><TD className="max-w-xs truncate text-muted" title={[e.path, e.detail, e.userAgent].filter(Boolean).join(" · ")}>{[e.path, e.detail].filter(Boolean).join(" · ")}</TD></TR>))}</TBody></Table>
+          </div>
+        )}
+      </Card>
     </div></>);
 }

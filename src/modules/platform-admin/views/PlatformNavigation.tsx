@@ -40,8 +40,9 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function PlatformNavigation({ name, logout }: { name: string; logout: ReactNode }) {
+export function PlatformNavigation({ name, logout, children }: { name: string; logout: ReactNode; children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -61,25 +62,37 @@ export function PlatformNavigation({ name, logout }: { name: string; logout: Rea
   useEffect(() => setOpen(false), [pathname]);
 
   return (
-    <>
-      <aside className="sticky top-0 hidden h-dvh border-r border-line bg-surface lg:block">
-        <div className="flex h-full flex-col">
-          <div className="flex h-16 shrink-0 items-center border-b border-line px-5"><Brand /></div>
-          <div className="flex-1 overflow-y-auto p-3"><Navigation /></div>
-          <div className="shrink-0 border-t border-line p-4">
-            <p className="mb-3 truncate px-1 text-sm font-medium text-fg">{name}</p>
-            {logout}
+    <div className={cn("min-h-dvh bg-bg lg:grid", collapsed ? "lg:grid-cols-1" : "lg:grid-cols-[256px_minmax(0,1fr)]")}>
+      {!collapsed ? (
+        <aside className="sticky top-0 hidden h-dvh border-r border-line bg-surface lg:block">
+          <div className="flex h-full flex-col">
+            <div className="flex h-16 shrink-0 items-center border-b border-line px-5"><Brand /></div>
+            <div className="flex-1 overflow-y-auto p-3"><Navigation /></div>
+            <div className="shrink-0 border-t border-line p-4">
+              <p className="mb-3 truncate px-1 text-sm font-medium text-fg">{name}</p>
+              {logout}
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      ) : null}
 
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-surface/95 px-4 backdrop-blur lg:hidden">
-        <Brand />
-        <button type="button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="platform-mobile-navigation" aria-expanded={open}
-          onClick={() => setOpen((value) => !value)} className="rounded-lg p-2 text-fg hover:bg-surface-2">
-          {open ? <LuX className="size-5" aria-hidden /> : <LuMenu className="size-5" aria-hidden />}
-        </button>
-      </header>
+      <div className="min-w-0">
+        <div className="sticky top-0 z-20 hidden h-12 items-center border-b border-line bg-surface/95 px-4 backdrop-blur lg:flex">
+          <button type="button" aria-label={collapsed ? "Show sidebar" : "Hide sidebar"} aria-expanded={!collapsed}
+            onClick={() => setCollapsed((value) => !value)} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-fg">
+            <LuMenu className="size-4" aria-hidden />
+            <span>{collapsed ? "Show menu" : "Hide menu"}</span>
+          </button>
+        </div>
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-surface/95 px-4 backdrop-blur lg:hidden">
+          <Brand />
+          <button type="button" aria-label={open ? "Close menu" : "Open menu"} aria-controls="platform-mobile-navigation" aria-expanded={open}
+            onClick={() => setOpen((value) => !value)} className="rounded-lg p-2 text-fg hover:bg-surface-2">
+            {open ? <LuX className="size-5" aria-hidden /> : <LuMenu className="size-5" aria-hidden />}
+          </button>
+        </header>
+        {children}
+      </div>
 
       {open ? (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -98,6 +111,6 @@ export function PlatformNavigation({ name, logout }: { name: string; logout: Rea
           </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }

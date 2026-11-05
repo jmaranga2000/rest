@@ -64,11 +64,10 @@ export function PlatformRequests({ requests }: { requests: RequestRow[] }) {
 
 export function PlatformShell({ name, children, logout }: { name: string; children: React.ReactNode; logout: React.ReactNode }) {
   return (
-    <div className="min-h-dvh bg-bg lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
-      <PlatformNavigation name={name} logout={logout} />
+    <PlatformNavigation name={name} logout={logout}>
       <main className="min-w-0">
         <div className="mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
       </main>
-    </div>
+    </PlatformNavigation>
   );
 }

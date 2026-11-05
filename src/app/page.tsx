@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LuChefHat, LuChartColumn, LuCheck, LuPackage, LuShoppingBag, LuStore, LuUtensilsCrossed, LuWallet } from "react-icons/lu";
+import { LuChefHat, LuChartColumn, LuCheck, LuPackage, LuShieldCheck, LuShoppingBag, LuStore, LuUtensilsCrossed, LuWallet } from "react-icons/lu";
 import { getCtx } from "@/platform/http/request";
 import { homeForRole } from "@/modules/identity/auth.service";
 import { DEFAULT_PLANS } from "@/platform/tenancy/plans";
@@ -21,9 +21,10 @@ export default async function Home() {
   const plans = DEFAULT_PLANS.filter((p) => p.isPublic);
   return (
     <div className="min-h-dvh bg-bg text-fg">
-      <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+      <header className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-2">
         <Link href="/" className="flex items-center gap-2.5 font-semibold"><span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-fg"><LuUtensilsCrossed className="size-5" /></span>Restaurant OS</Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex flex-wrap items-center justify-end gap-2">
+          <Link className={buttonClass("outline", "md")} href="/platform"><LuShieldCheck className="size-4" aria-hidden /><span className="hidden sm:inline">Operator console</span><span className="sm:hidden">Platform</span></Link>
           {ctx ? <Link className={buttonClass("primary", "md")} href={homeForRole(ctx.roleKey)}>Open app</Link> : <><Link className={buttonClass("ghost", "md")} href="/login">Sign in</Link><Link className={buttonClass("primary", "md")} href="/register">Start free trial</Link></>}
         </nav>
       </header>
