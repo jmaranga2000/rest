@@ -97,7 +97,7 @@ export function useRunAction() {
   const router = useRouter();
   const toast = useToast();
   const [pending, start] = useTransition();
-  function run<I, T>(action: ObjectAction<I, T>, input: I, opts: { success?: string; onDone?: (data: T) => void; refresh?: boolean } = {}) {
+  function run<I, T>(action: ObjectAction<I, T>, input: I, opts: { success?: string; onDone?: (data: T) => void; onError?: () => void; refresh?: boolean } = {}) {
     start(async () => {
       const res = await action(input);
       if (res.ok) {
@@ -106,6 +106,7 @@ export function useRunAction() {
         if (opts.refresh !== false) router.refresh();
       } else {
         toast.error(res.error.message);
+        opts.onError?.();
         if (res.error.code === "UNAUTHENTICATED") router.push("/login");
       }
     });

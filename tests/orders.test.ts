@@ -59,7 +59,8 @@ test("void rules, discount audit and refunds", async () => {
 test("table is exclusive and shift variance is computed", async () => {
   const { t, ctx, burger } = await setup();
   const tbl = newId("table");
-  await t.db.col("diningTables").insert({ id: tbl, orgId: t.orgId, branchId: t.branchId, label: "T1", seats: 4, sortOrder: 0 });
+  await assert.rejects(() => orders.openOrder(ctx, { branchId: t.branchId, type: "dine_in" }), /Select a table/i);
+  await t.db.col("diningTables").insert({ id: tbl, orgId: t.orgId, branchId: t.branchId, label: "T1", seats: 4, sortOrder: 0, isActive: true });
   await orders.openOrder(ctx, { branchId: t.branchId, type: "dine_in", tableId: tbl });
   await assert.rejects(() => orders.openOrder(ctx, { branchId: t.branchId, type: "dine_in", tableId: tbl }), /already has open order/);
 

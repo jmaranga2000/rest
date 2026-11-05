@@ -168,6 +168,7 @@ export async function openOrder(ctx: Ctx, input: OpenOrderInput, extra: Record<s
   requirePermission(ctx, "orders.create");
   const branch = requireBranch(ctx, input.branchId);
   if (!ctx.settings.orderTypes.includes(input.type)) throw new BusinessRuleError("That order type is not enabled for this business.");
+  if (input.type === "dine_in" && !input.tableId) throw new BusinessRuleError("Select a table before opening a dine-in order.");
   const orders = ctx.db.col<OrderDoc>("orders");
 
   if (input.clientKey) {

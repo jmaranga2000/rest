@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { LuShieldCheck, LuUtensilsCrossed } from "react-icons/lu";
+import { LuUtensilsCrossed } from "react-icons/lu";
 import type { Ctx } from "@/platform/auth/context";
 import { Alert } from "../misc";
 import { Button } from "../Button";
@@ -50,12 +50,6 @@ export function AppShell({ ctx, actions, children, pathname }: { ctx: Ctx; actio
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
         <SidebarNav groups={groups} />
-        <div className="mt-5 border-t border-line pt-4">
-          <Link href="/platform" className="flex items-center gap-3 rounded-md px-3 py-2 text-[13.5px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg">
-            <LuShieldCheck className="size-[18px] shrink-0" aria-hidden />
-            <span>Operator console</span>
-          </Link>
-        </div>
       </div>
       <div className="shrink-0 border-t border-line p-3">
         <p className="mb-2 px-2 text-[11px] text-subtle">{ctx.plan.name} plan{ctx.subscription.status === "trialing" ? " · trial" : ""}</p>
