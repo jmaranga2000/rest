@@ -318,14 +318,14 @@ export async function completeOnboarding(ctx: Ctx, i: z.infer<typeof import("./s
 }
 
 /* ------------------------------------------------------------------ customer displays */
-export interface SlideRow { id: string; branchId: string | null; title: string; body: string; accent: string; durationS: number; isActive: boolean }
+export interface SlideRow { id: string; branchId: string | null; title: string; body: string; imageUrl: string | null; accent: string; durationS: number; isActive: boolean }
 export async function listSlides(ctx: Ctx): Promise<SlideRow[]> {
-  const rows = await ctx.db.col<Doc & { branchId: string | null; title: string; body: string; accent: string; durationS: number; isActive: boolean; sortOrder: number; createdAt: string }>("signageSlides").find({ orgId: ctx.org.id });
-  return rows.sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder) || (a.createdAt < b.createdAt ? -1 : 1)).map((r) => ({ id: r.id, branchId: r.branchId ?? null, title: r.title, body: r.body ?? "", accent: r.accent, durationS: Number(r.durationS), isActive: r.isActive }));
+  const rows = await ctx.db.col<Doc & { branchId: string | null; title: string; body: string; imageUrl: string | null; accent: string; durationS: number; isActive: boolean; sortOrder: number; createdAt: string }>("signageSlides").find({ orgId: ctx.org.id });
+  return rows.sort((a, b) => Number(a.sortOrder) - Number(b.sortOrder) || (a.createdAt < b.createdAt ? -1 : 1)).map((r) => ({ id: r.id, branchId: r.branchId ?? null, title: r.title, body: r.body ?? "", imageUrl: r.imageUrl ?? null, accent: r.accent, durationS: Number(r.durationS), isActive: r.isActive }));
 }
 export async function saveSlide(ctx: Ctx, i: z.infer<typeof import("./schema").slideSchema>): Promise<{ id: string }> {
   if (i.branchId) requireBranch(ctx, i.branchId);
-  const data = { branchId: i.branchId ?? null, title: i.title, body: i.body ?? "", accent: i.accent, durationS: i.durationS, ...(i.isActive !== undefined ? { isActive: i.isActive } : {}) };
+  const data = { branchId: i.branchId ?? null, title: i.title, body: i.body ?? "", imageUrl: i.imageUrl ?? null, accent: i.accent, durationS: i.durationS, ...(i.isActive !== undefined ? { isActive: i.isActive } : {}) };
   if (i.id) { await ctx.db.col("signageSlides").update({ orgId: ctx.org.id, id: i.id }, { $set: data }); return { id: i.id }; }
   const id = newId("slide");
   await ctx.db.col("signageSlides").insert({ id, orgId: ctx.org.id, ...data, isActive: data.isActive ?? true, sortOrder: await ctx.db.col("signageSlides").count({ orgId: ctx.org.id }), createdAt: nowIso() });
@@ -338,7 +338,7 @@ export interface BoardMenuGroup { name: string; items: { id: string; name: strin
 export interface DisplayBoard {
   branchName: string; orgName: string; logoUrl: string | null; city: string | null; currency: string; locale: string; timezone: string;
   waiting: BoardOrder[]; ready: BoardOrder[]; menu: BoardMenuGroup[];
-  slides: { id: string; title: string; body: string; accent: string; durationS: number }[];
+  slides: { id: string; title: string; body: string; imageUrl: string | null; accent: string; durationS: number }[];
 }
 /** Public (unauthenticated) customer board, addressed by the branch's secret display key. Exposes order numbers, item names and the public menu only: no customer data, no totals. */
 export async function getDisplayBoard(db: Db, key: string): Promise<DisplayBoard | null> {
@@ -363,7 +363,7 @@ export async function getDisplayBoard(db: Db, key: string): Promise<DisplayBoard
     db.col<Doc & { name: string; sortOrder: number; isActive: boolean }>("menuCategories").find({ orgId: b.orgId, isActive: true }),
     db.col<Doc & { categoryId: string; name: string; description: string; imageUrl: string | null; basePriceMinor: number; sortOrder: number }>("products").find({ orgId: b.orgId, isActive: true }),
     db.col<Doc & { productId: string; priceMinor: number | null; isAvailable: boolean }>("branchProducts").find({ orgId: b.orgId, branchId: b.id }),
-    db.col<Doc & { branchId: string | null; title: string; body: string; accent: string; durationS: number; sortOrder: number; createdAt: string }>("signageSlides").find({ orgId: b.orgId, isActive: true }),
+    db.col<Doc & { branchId: string | null; title: string; body: string; imageUrl: string | null; accent: string; durationS: number; sortOrder: number; createdAt: string }>("signageSlides").find({ orgId: b.orgId, isActive: true }),
   ]);
   const over = new Map(branchRows.map((r) => [r.productId, r]));
   const menu: BoardMenuGroup[] = [...cats].sort((x, y) => Number(x.sortOrder) - Number(y.sortOrder) || x.name.localeCompare(y.name)).map((c) => ({
@@ -375,6 +375,6 @@ export async function getDisplayBoard(db: Db, key: string): Promise<DisplayBoard
   const slides = slideDocs.filter((s) => !s.branchId || s.branchId === b.id).sort((x, y) => Number(x.sortOrder) - Number(y.sortOrder) || (x.createdAt < y.createdAt ? -1 : 1));
   return {
     branchName: b.name, orgName: org.name, logoUrl: org.logoUrl ?? null, city: b.city ?? null, currency: org.currency, locale: org.locale, timezone: b.timezone ?? org.timezone,
-    waiting, ready, menu, slides: slides.map((x) => ({ id: x.id, title: x.title, body: x.body ?? "", accent: x.accent, durationS: Number(x.durationS) })),
+    waiting, ready, menu, slides: slides.map((x) => ({ id: x.id, title: x.title, body: x.body ?? "", imageUrl: x.imageUrl ?? null, accent: x.accent, durationS: Number(x.durationS) })),
   };
 }

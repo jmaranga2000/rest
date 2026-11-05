@@ -39,5 +39,6 @@ export const onboardingSchema = z.object({
 
 export const slideSchema = z.object({
   id: zId.optional(), branchId: z.preprocess((v) => (v === "" ? null : v), zId.nullable().optional()), title: zText("Title", 80), body: zOptText(240),
+  imageUrl: z.preprocess((v) => (v === "" ? undefined : v), z.string().trim().max(500).regex(/^(https:\/\/|\/)[^\s]+$/, "Use an https:// link or a path starting with /").optional()),
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Pick a colour.").default("#4338ca"), durationS: zInt(3, 120), isActive: zBool.optional(),
 });

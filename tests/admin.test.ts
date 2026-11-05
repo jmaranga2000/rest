@@ -93,7 +93,7 @@ test("customer display board shows only numbers, splits preparing/ready, rejects
   const t = await createTenant();
   const ctx = await t.ctxFor(t.ownerId);
   const { slideSchema } = await import("@/modules/admin/schema");
-  await admin.saveSlide(ctx, slideSchema.parse({ title: "Happy hour", body: "2-for-1 drinks", durationS: "6" }));
+  await admin.saveSlide(ctx, slideSchema.parse({ title: "Happy hour", body: "2-for-1 drinks", imageUrl: "https://images.example.com/special.webp", durationS: "6" }));
   const key = (await t.db.col<{ id: string; displayKey: string }>("branches").findOne({ id: t.branchId }))!.displayKey;
   const { saveCategory, saveProduct } = await import("@/modules/menu/service");
   const orders = await import("@/modules/orders/service");
@@ -103,7 +103,7 @@ test("customer display board shows only numbers, splits preparing/ready, rejects
   await orders.addItems(ctx, o.id, [{ productId: p.id, qty: 1 }]);
   await orders.sendToKitchen(ctx, o.id);
   let board = await admin.getDisplayBoard(t.db, key);
-  assert.deepEqual(board!.waiting.map((x) => x.number), [o.number]); assert.deepEqual(board!.waiting[0]!.items, [{ name: "Tea", qty: 1 }]); assert.deepEqual(board!.ready, []); assert.equal(board!.slides.length, 1);
+  assert.deepEqual(board!.waiting.map((x) => x.number), [o.number]); assert.deepEqual(board!.waiting[0]!.items, [{ name: "Tea", qty: 1 }]); assert.deepEqual(board!.ready, []); assert.equal(board!.slides.length, 1); assert.equal(board!.slides[0]!.imageUrl, "https://images.example.com/special.webp");
   assert.deepEqual(board!.menu.map((g) => [g.name, g.items.map((i) => i.name)]), [["M", ["Tea"]]]);
   await orders.bumpOrder(ctx, o.id, "ready");
   board = await admin.getDisplayBoard(t.db, key);

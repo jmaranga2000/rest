@@ -3,7 +3,7 @@ import { env } from "../env";
 
 let client: S3Client | undefined;
 
-export async function storeProductImage(orgId: string, key: string, body: Uint8Array, contentType: string): Promise<string> {
+export async function storeImage(orgId: string, collection: "products" | "display-slides", key: string, body: Uint8Array, contentType: string): Promise<string> {
   const config = env();
   const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_URL } = config;
   if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET || !R2_PUBLIC_URL) {
@@ -16,7 +16,7 @@ export async function storeProductImage(orgId: string, key: string, body: Uint8A
     credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
   });
 
-  const objectKey = `organizations/${orgId}/products/${key}`;
+  const objectKey = `organizations/${orgId}/${collection}/${key}`;
   await client.send(new PutObjectCommand({
     Bucket: R2_BUCKET,
     Key: objectKey,
@@ -26,3 +26,6 @@ export async function storeProductImage(orgId: string, key: string, body: Uint8A
   }));
   return `${R2_PUBLIC_URL.replace(/\/+$/, "")}/${objectKey}`;
 }
+
+export const storeProductImage = (orgId: string, key: string, body: Uint8Array, contentType: string) =>
+  storeImage(orgId, "products", key, body, contentType);

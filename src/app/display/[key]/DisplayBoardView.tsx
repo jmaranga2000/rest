@@ -30,7 +30,7 @@ export function DisplayBoardView({ board, now: initialNow }: { board: DisplayBoa
   const at = (iso: string) => new Intl.DateTimeFormat(board.locale, { timeZone: board.timezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 
   const photos = useMemo(() => board.menu.flatMap((g) => g.items).filter((i) => i.imageUrl).map((i) => i.imageUrl!), [board.menu]);
-  const hero = photos.length ? photos[slideIx % photos.length]! : null;
+  const hero = slide?.imageUrl ?? (photos.length ? photos[slideIx % photos.length]! : null);
 
   return (
     <div className="flex h-dvh min-h-[640px] flex-col overflow-hidden bg-[#070d1f] text-white" style={{ backgroundImage: "radial-gradient(1200px 600px at 20% -10%, #14224d 0%, transparent 60%), radial-gradient(900px 500px at 100% 100%, #0b3b3a 0%, transparent 55%)" }}>
@@ -124,26 +124,27 @@ function Menu({ board }: { board: DisplayBoard }) {
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = box.current; if (!el) return;
-    let dir = 1; let hold = 120; let raf = 0; let acc = 0;
-    const tick = () => {
+    let dir = 1; let raf = 0; let lastTime = 0; let holdUntil = performance.now() + 2000;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const tick = (time: number) => {
       const max = el.scrollHeight - el.clientHeight;
-      if (max > 4) {
-        if (hold > 0) hold -= 1;
-        else {
-          acc += 0.35 * dir; const step = Math.trunc(acc); acc -= step;
-          el.scrollTop += step;
-          if (el.scrollTop >= max - 1 && dir > 0) { dir = -1; hold = 150; } else if (el.scrollTop <= 0 && dir < 0) { dir = 1; hold = 150; }
-        }
+      const elapsed = lastTime ? Math.min(time - lastTime, 50) : 0;
+      lastTime = time;
+      const paused = reducedMotion.matches || document.hidden || el.matches(":hover") || el.contains(document.activeElement);
+      if (max > 4 && !paused && time >= holdUntil) {
+        el.scrollTop += elapsed * 0.018 * dir;
+        if (el.scrollTop >= max - 1 && dir > 0) { dir = -1; holdUntil = time + 1500; }
+        else if (el.scrollTop <= 0 && dir < 0) { dir = 1; holdUntil = time + 1500; }
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [board.menu]);
+  }, []);
   return (
     <section className="flex min-h-0 flex-col rounded-3xl border border-white/10 bg-white/[0.03] p-5" aria-label="Menu">
       <div className="flex items-baseline justify-between"><h2 className="text-sm font-extrabold uppercase tracking-[0.25em] text-white/85">Our menu</h2><span className="text-xs text-sky-300/80">Freshly prepared to order</span></div>
-      <div ref={box} className="mt-3 min-h-0 flex-1 space-y-4 overflow-hidden">
+      <div ref={box} className="mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain [scrollbar-width:none]">
         {board.menu.map((g) => (
           <div key={g.name}>
             <div className="mb-2 flex items-center gap-3"><h3 className="text-lg font-extrabold uppercase tracking-wider text-orange-400">{g.name}</h3><span className="h-px flex-1 bg-white/10" /></div>
