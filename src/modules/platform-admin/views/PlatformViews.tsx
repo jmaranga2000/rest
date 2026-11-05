@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LuBuilding2, LuInbox, LuShieldCheck } from "react-icons/lu";
+import { LuBuilding2, LuInbox } from "react-icons/lu";
 import { Badge, StatusBadge } from "@/ui/Badge";
 import { Button } from "@/ui/Button";
 import { Card, CardBody, CardHeader } from "@/ui/Card";
@@ -15,6 +15,7 @@ import { approveRequestAction, changePlanAction, extendTrialAction, reactivateOr
 import type { OrgRow, PlatformStats, RequestRow } from "../service";
 import { PaystackAdminCard } from "@/modules/payments/views/PaystackAdminCard";
 import { PAYSTACK_CURRENCIES } from "@/platform/paystack/client";
+import { PlatformNavigation } from "./PlatformNavigation";
 
 const TZ = "Africa/Nairobi";
 export function PlatformDashboard({ stats, orgs, q }: { stats: PlatformStats; orgs: OrgRow[]; q?: string }) {
@@ -62,8 +63,12 @@ export function PlatformRequests({ requests }: { requests: RequestRow[] }) {
 }
 
 export function PlatformShell({ name, children, logout }: { name: string; children: React.ReactNode; logout: React.ReactNode }) {
-  return (<div className="min-h-dvh bg-bg"><header className="border-b border-line bg-surface"><div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
-    <Link href="/platform" className="flex items-center gap-2 font-semibold"><LuShieldCheck className="size-5 text-primary" />Operator console</Link>
-    <nav className="flex gap-4 text-sm text-muted"><Link href="/platform" className="hover:text-fg">Organisations</Link><Link href="/platform/requests" className="hover:text-fg">Plan requests</Link><Link href="/platform/security" className="hover:text-fg">Security</Link></nav>
-    <div className="ml-auto flex items-center gap-3 text-sm text-muted">{name}{logout}</div></div></header><main className="mx-auto max-w-6xl px-4 py-8">{children}</main></div>);
+  return (
+    <div className="min-h-dvh bg-bg lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
+      <PlatformNavigation name={name} logout={logout} />
+      <main className="min-w-0">
+        <div className="mx-auto w-full max-w-[1240px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</div>
+      </main>
+    </div>
+  );
 }
