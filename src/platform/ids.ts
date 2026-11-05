@@ -8,7 +8,7 @@ const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
 export const ID_PREFIXES = {
   org: "org", branch: "brn", user: "usr", role: "rol", session: "ses", terminal: "trm", invite: "inv",
-  category: "cat", station: "stn", product: "prd", variant: "var", modGroup: "mgr", modOption: "mop",
+  category: "cat", station: "stn", product: "prd", image: "img", variant: "var", modGroup: "mgr", modOption: "mop",
   area: "area", table: "tbl", customer: "cus", reward: "rwd", loyalty: "lty",
   order: "ord", orderItem: "oit", payment: "pay", shift: "shf", cashMove: "cmv",
   invItem: "itm", movement: "mov", supplier: "sup", po: "po", poLine: "pol", count: "cnt", countLine: "cnl",
