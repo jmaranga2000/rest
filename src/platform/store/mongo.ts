@@ -15,7 +15,7 @@ interface MModel {
   find(f: Filter): MQuery<Record<string, unknown>[]>;
   findOne(f: Filter): MQuery<Record<string, unknown> | null>;
   countDocuments(f: Filter): MQuery<number>;
-  create(d: Record<string, unknown>, o?: Record<string, unknown>): Promise<unknown>;
+  create(d: Record<string, unknown>[], o?: Record<string, unknown>): Promise<unknown>;
   insertMany(d: Record<string, unknown>[], o?: Record<string, unknown>): Promise<unknown>;
   updateMany(f: Filter, u: Record<string, unknown>, o?: Record<string, unknown>): MQuery<{ matchedCount: number }>;
   findOneAndUpdate(f: Filter, u: Record<string, unknown>, o?: Record<string, unknown>): MQuery<Record<string, unknown> | null>;
@@ -84,7 +84,7 @@ function build(mongooseModule: Mongoose, connection: MConnection, session: MSess
       count: (filter = {}) => withSession(c.countDocuments(toMongoFilter(filter))).exec(),
       insert: (doc) => guard(async () => {
         assertSafeDocument(doc);
-        await c.create(toMongoDoc(prepareInsert(name, doc as unknown as Doc)), session ? { session } : undefined);
+        await c.create([toMongoDoc(prepareInsert(name, doc as unknown as Doc))], session ? { session } : undefined);
       }),
       insertMany: (docs) => guard(async () => {
         docs.forEach((d) => assertSafeDocument(d));
