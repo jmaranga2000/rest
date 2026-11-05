@@ -4,8 +4,9 @@ import { usePathname } from "next/navigation";
 import {
   LuArmchair, LuArrowUpRight, LuBedDouble, LuChartColumn, LuChefHat, LuCreditCard, LuGift, LuLayoutDashboard, LuLock,
   LuPackage, LuReceipt, LuScrollText, LuSettings, LuShieldCheck, LuShoppingBag, LuStore, LuTablet, LuTruck, LuTv,
-  LuUserCog, LuUsers, LuUtensilsCrossed, LuWallet, type IconType,
+  LuUserCog, LuUsers, LuUtensilsCrossed, LuWallet,
 } from "react-icons/lu";
+import type { IconType } from "react-icons";
 import { cn } from "../cn";
 import type { NavGroup, NavIconName, NavItem } from "./nav";
 
