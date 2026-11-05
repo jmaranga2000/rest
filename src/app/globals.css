@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* Theme is switched with <html data-theme="light|dark"> (set before first paint by an inline script). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens. Components use SEMANTIC names (bg-surface, text-muted,
+   border-line, bg-primary …) so a theme is a token swap — never a pile of
+   dark: overrides, and never a global CSS hack.
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --bg: #f6f6f3;
+  --surface: #ffffff;
+  --surface-2: #f2f2ee;
+  --surface-3: #e9e9e4;
+  --line: #e3e3dd;
+  --line-strong: #cbcbc3;
+  --fg: #181816;
+  --muted: #5a5a53;
+  --subtle: #85857d;
+
+  --primary: #4338ca;
+  --primary-hover: #3730a3;
+  --primary-soft: #eceefe;
+  --primary-fg: #ffffff;
+
+  --success: #15803d;
+  --success-soft: #e6f5ec;
+  --warning: #a35a06;
+  --warning-soft: #fdf1da;
+  --danger: #b42318;
+  --danger-soft: #fdeceb;
+  --info: #0a6aa1;
+  --info-soft: #e4f2fb;
+
+  --c1: #5b5fe0; --c2: #0d9488; --c3: #d97706; --c4: #e11d48; --c5: #0284c7; --c6: #7c3aed;
+  --overlay: rgb(20 20 18 / 0.5);
+  --shadow-sm: 0 1px 2px rgb(20 20 18 / 0.06);
+  --shadow-md: 0 4px 16px rgb(20 20 18 / 0.08);
+  --shadow-lg: 0 16px 48px rgb(20 20 18 / 0.18);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d0d0c;
+  --surface: #161614;
+  --surface-2: #1e1e1b;
+  --surface-3: #292925;
+  --line: #2a2a26;
+  --line-strong: #3d3d37;
+  --fg: #f3f3ef;
+  --muted: #a8a89f;
+  --subtle: #78786f;
+
+  --primary: #6d70f5;
+  --primary-hover: #8285f8;
+  --primary-soft: #23244a;
+  --primary-fg: #ffffff;
+
+  --success: #4ade80;
+  --success-soft: #11291b;
+  --warning: #fbbf24;
+  --warning-soft: #33250a;
+  --danger: #f87171;
+  --danger-soft: #371614;
+  --info: #5cb8f0;
+  --info-soft: #0d2636;
+
+  --c1: #8083f7; --c2: #2dd4bf; --c3: #fbbf24; --c4: #fb7185; --c5: #38bdf8; --c6: #a78bfa;
+  --overlay: rgb(0 0 0 / 0.65);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 16px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-fg: var(--primary-fg);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-pop: var(--shadow-md);
+  --shadow-modal: var(--shadow-lg);
+
+  --animate-in: in 160ms ease-out;
+  --animate-pulse-soft: pulse-soft 1.6s ease-in-out infinite;
+  @keyframes in { from { opacity: 0; transform: translateY(4px) scale(0.99); } to { opacity: 1; transform: none; } }
+  @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+}
+
+@layer base {
+  html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
+  }
+  /* Money, counts and times always align in columns. */
+  table, .num { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+  ::selection { background: var(--primary-soft); color: var(--fg); }
+  button, [role="button"], a, select, summary { -webkit-tap-highlight-color: transparent; }
+  dialog { color: inherit; }
+  dialog::backdrop { background: var(--overlay); backdrop-filter: blur(2px); }
+  input, select, textarea { font: inherit; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; border: 2px solid var(--bg); }
+}
+
+@layer components {
+  /* One definition of the form control look, shared by Input / Select / Textarea. */
+  .control {
+    width: 100%;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    padding: 0 0.75rem;
+    min-height: 2.5rem;
+    transition: border-color 120ms, box-shadow 120ms;
+  }
+  .control::placeholder { color: var(--subtle); }
+  .control:hover { border-color: var(--subtle); }
+  .control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
+  .control:disabled { background: var(--surface-2); color: var(--subtle); cursor: not-allowed; }
+  .control[aria-invalid="true"] { border-color: var(--danger); }
+  textarea.control { padding: 0.5rem 0.75rem; min-height: 5rem; }
+}
+
+@media print {
+  body { background: #fff; color: #000; }
+  .no-print { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Printable QR cards (/print/qr). Colours are fixed so the codes scan from paper regardless of theme. */
+@media print {
+  @page { size: A4; margin: 8mm; }
+  html, body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .qr-card { break-inside: avoid; page-break-inside: avoid; }
+}

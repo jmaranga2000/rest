@@ -1,0 +1,10 @@
+node_modules
+.next
+.data
+*.db
+*.db-journal
+.env
+.env.local
+tsconfig.tsbuildinfo
+out
+.preview
